@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PWAbuela</title>
+    <link rel="manifest" href="manifest.json" />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="img/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="img/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="img/favicon-16x16.png"
+    />
+    <link rel="mask-icon" href="img/safari-pinned-tab.svg" color="#fc716e" />
+    <meta name="msapplication-TileColor" content="#da532c" />
+    <meta name="theme-color" content="#ffffff" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+        height: 100vh;
+      }
+
+      audio {
+        margin-top: 20px;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        justify-content: center;
+      }
+
+      .title-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-family: Arial, sans-serif;
+        font-size: 18px;
+      }
+
+      .avatar {
+        width: 64px;
+        height: 64px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+        <div class="title-container">
+          <img src="img/abuela-cascos.svg" class="avatar" />
+          <h2>Play Well Abuela</h2>
+        </div>       
+        <audio
+          id="audio-player"
+          src="https://api.spreaker.com/v2/episodes/48338128/download.mp3"
+          controls
+        />
+    </div>
+  </body>
+</html>

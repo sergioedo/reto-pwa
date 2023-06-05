@@ -58,6 +58,10 @@
         width: 64px;
         height: 64px;
       }
+
+      #episodeSelector {
+        width: 80%;
+      }
     </style>
   </head>
   <body>
@@ -66,9 +70,15 @@
         <img src="img/abuela-cascos.svg" class="avatar" />
         <h2>Play Well Abuela</h2>
       </div>
+      <div>
+        <h3>Últimos episodios de Web Reactiva:</h3>
+        <select id="episodeSelector">
+            <option>----Selecciona el audio a reproducir----</option>
+        </select>
+      </div>
       <audio
         id="audio-player"
-        src="https://api.spreaker.com/v2/episodes/48338128/download.mp3"
+        src=""
         controls
       />
     </div>
@@ -86,6 +96,32 @@
             });
         });
       }
+
+      // Realizar la llamada a la API, para cargar los últimos 10 episodios
+      fetch("https://api.spreaker.com/v2/shows/2676652/episodes?limit=10")
+        .then((response) => response.json())
+        .then((data) => {
+          const episodes = data.response.items;
+          const selector = document.getElementById("episodeSelector");
+
+          // Rellenar el selector con los títulos de los episodios
+          episodes.forEach((episode) => {
+            const option = document.createElement("option");
+            option.value = episode.download_url;
+            option.text = episode.title;
+            selector.appendChild(option);
+          });
+        })
+        .catch((error) => {
+          console.error("Error al obtener los episodios:", error);
+        });
+
+      const audioPlayer = document.getElementById("audio-player");
+      const episodeSelector = document.getElementById('episodeSelector');
+      episodeSelector.addEventListener("change", function () {
+        const selectedValue = episodeSelector.value;
+        audioPlayer.src = selectedValue;
+      });
     </script>
   </body>
 </html>

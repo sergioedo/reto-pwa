@@ -107,6 +107,7 @@
             option.value = episode.download_url;
             option.text = episode.title;
             selector.appendChild(option);
+            fetch(episode.download_url).then((data => console.log('Episodio descargado...' + episode.download_url)))
           });
         })
         .catch((error) => {

@@ -73,15 +73,12 @@
       <div>
         <h3>Últimos episodios de Web Reactiva:</h3>
         <select id="episodeSelector">
-            <option>----Selecciona el audio a reproducir----</option>
+          <option>----Selecciona el audio a reproducir----</option>
         </select>
       </div>
-      <audio
-        id="audio-player"
-        src=""
-        controls
-      />
+      <audio id="audio-player" src="" controls preload="auto" />
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
     <script>
       // Registro del Service Worker
       if ("serviceWorker" in navigator) {
@@ -117,10 +114,69 @@
         });
 
       const audioPlayer = document.getElementById("audio-player");
-      const episodeSelector = document.getElementById('episodeSelector');
+      const episodeSelector = document.getElementById("episodeSelector");
+
+      // Función para guardar una clave-valor en el almacenamiento
+      function idxDBSet(key, value) {
+        idbKeyval
+          .set(key, value)
+          .then(() => {
+            console.log("Valor guardado en el almacenamiento");
+          })
+          .catch((error) => {
+            console.error("Error al guardar el valor:", error);
+          });
+      }
+
+      // Función para recuperar el valor de una clave del almacenamiento
+      function idxDBGet(key, callback) {
+        idbKeyval
+          .get(key)
+          .then((value) => {
+            callback(value);
+          })
+          .catch((error) => {
+            console.error(
+              "Error al leer el valor de audio seleccionado:",
+              error
+            );
+            callback(null, error);
+          });
+      }
+
+      // Seleccionar el audio
       episodeSelector.addEventListener("change", function () {
         const selectedValue = episodeSelector.value;
         audioPlayer.src = selectedValue;
+        idxDBSet("selectedAudio", selectedValue);
+      });
+
+      // Recuperar audio seleccionado
+      idxDBGet("selectedAudio", function (value, error) {
+        if (value) {
+          episodeSelector.value = value;
+          audioPlayer.src = value;
+        }
+      });
+
+      // Recuperar el último instante de reproducción
+      audioPlayer.addEventListener("canplaythrough", function () {
+        // El audio está listo para reproducirse
+        // Recuperar tiempo de reproducción
+        idxDBGet("time_" + episodeSelector.value, function (time, error) {
+          if (time && audioPlayer.paused) {
+            audioPlayer.currentTime = time;
+          }
+        });
+      });
+
+      // Guardar el momento de reproducción, cada vez que se actualiza
+      audioPlayer.addEventListener("timeupdate", function () {
+        if (!audioPlayer.paused) {
+          // Obtener el tiempo actual del audio
+          currentTime = audioPlayer.currentTime;
+          idxDBSet("time_" + episodeSelector.value, currentTime);
+        }
       });
     </script>
   </body>

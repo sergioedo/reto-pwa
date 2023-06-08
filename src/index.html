@@ -94,20 +94,45 @@
         });
       }
 
+      // Check if a file is cached by a service worker
+      function isFileCached(fileUrl, cacheName) {
+        return caches
+          .open(cacheName)
+          .then(function (cache) {
+            return cache.match(fileUrl);
+          })
+          .then(function (response) {
+            if (response) {
+              console.log(`File ${fileUrl} is cached!`);
+              return true;
+            } else {
+              console.log(`File ${fileUrl} is NOT cached!`);
+              return false;
+            }
+          });
+      }
+
       // Realizar la llamada a la API, para cargar los últimos 10 episodios
       fetch("https://api.spreaker.com/v2/shows/2676652/episodes?limit=10")
         .then((response) => response.json())
         .then((data) => {
           const episodes = data.response.items;
           const selector = document.getElementById("episodeSelector");
-
+          const cacheName = "pwa-abuela-cache";
           // Rellenar el selector con los títulos de los episodios
           episodes.forEach((episode) => {
             const option = document.createElement("option");
             option.value = episode.download_url;
             option.text = episode.title;
             selector.appendChild(option);
-            fetch(episode.download_url).then((data => console.log('Episodio descargado...' + episode.download_url)))
+            // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
+            isFileCached(episode.download_url, cacheName).then((cached) => {
+              if (!cached) {
+                fetch(episode.download_url).then((data) =>
+                  console.log("Episodio descargado..." + episode.download_url)
+                );
+              }
+            });
           });
         })
         .catch((error) => {

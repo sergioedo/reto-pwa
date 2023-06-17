@@ -62,6 +62,20 @@
       #episodeSelector {
         width: 80%;
       }
+
+      .audio-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+      }
+      .rounded-button {
+        height: 35px;
+        width: 35px;
+        border-radius: 30px;
+        /* border: none; */
+        margin-left: 10px;
+        margin-top: 15px;
+      }
     </style>
   </head>
   <body>
@@ -76,10 +90,36 @@
           <option>----Selecciona el audio a reproducir----</option>
         </select>
       </div>
-      <audio id="audio-player" src="" controls preload="auto" />
+      <div class="audio-container">
+        <audio id="audio-player" src="" controls preload="auto"></audio>
+        <button
+          onclick="changePlayBackRate()"
+          id="playback-rate-btn"
+          class="rounded-button"
+        >
+          1x
+        </button>
+      </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
     <script>
+      let playbackRate = 1;
+
+      const changePlayBackRate = () => {
+        if (playbackRate === 1) {
+          playbackRate = 2;
+        } else {
+          playbackRate = 1;
+        }
+        audioPlayer.playbackRate = playbackRate; //si se esta reproduciendo
+        audioPlayer.oncanplay = function () {
+          //si no se está reproduciendo
+          audioPlayer.playbackRate = playbackRate;
+        };
+        document.getElementById("playback-rate-btn").textContent =
+          playbackRate + "x";
+      };
+
       // Registro del Service Worker
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {

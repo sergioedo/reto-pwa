@@ -25,16 +25,24 @@
     <link rel="mask-icon" href="img/safari-pinned-tab.svg" color="#fc716e" />
     <meta name="msapplication-TileColor" content="#da532c" />
     <meta name="theme-color" content="#ffffff" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/beercss@3.2.10/dist/cdn/beer.min.css"
+      rel="stylesheet"
+    />
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/beercss@3.2.10/dist/cdn/beer.min.js"
+    ></script>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/material-dynamic-colors@0.1.7/dist/cdn/material-dynamic-colors.min.js"
+    ></script>
     <style>
       body {
         font-family: Arial, sans-serif;
         text-align: center;
         padding: 20px;
         height: 100vh;
-      }
-
-      audio {
-        margin-top: 20px;
       }
 
       .container {
@@ -58,49 +66,38 @@
         width: 64px;
         height: 64px;
       }
-
-      #episodeSelector {
-        width: 80%;
-      }
-
-      .audio-container {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-      }
-      .rounded-button {
-        height: 35px;
-        width: 35px;
-        border-radius: 30px;
-        /* border: none; */
-        margin-left: 10px;
-        margin-top: 15px;
-      }
     </style>
   </head>
   <body>
-    <div class="container">
+    <main class="container">
       <div class="title-container">
         <img src="img/abuela-cascos.svg" class="avatar" />
-        <h2>Play Well Abuela</h2>
+        <h3>Play Well Abuela</h3>
       </div>
-      <div>
-        <h3>Últimos episodios de Web Reactiva:</h3>
-        <select id="episodeSelector">
-          <option>----Selecciona el audio a reproducir----</option>
-        </select>
+      <div class="grid">
+        <h6 class="s12 center-align">Últimos episodios de Web Reactiva:</h6>
+        <div class="field suffix border s12 responsive">
+          <select id="episodeSelector">
+            <option>----Selecciona el audio a reproducir----</option>
+          </select>
+          <i>arrow_drop_down</i>
+        </div>
       </div>
-      <div class="audio-container">
-        <audio id="audio-player" src="" controls preload="auto"></audio>
-        <button
-          onclick="changePlayBackRate()"
-          id="playback-rate-btn"
-          class="rounded-button"
-        >
-          1x
-        </button>
+      <div class="row responsive center-align">
+        <div>
+          <audio id="audio-player" src="" controls preload="auto"></audio>
+        </div>
+        <div class="">
+          <button
+            onclick="changePlayBackRate()"
+            id="playback-rate-btn"
+            class="circle large medium-elevate"
+          >
+            1x
+          </button>
+        </div>
       </div>
-    </div>
+    </main>
     <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
     <script>
       let playbackRate = 1;
@@ -213,7 +210,7 @@
       }
 
       const setMetadata = (episode) => {
-        if ("mediaSession" in navigator) {
+        if (episode && "mediaSession" in navigator) {
           const player = document.querySelector("audio");
 
           navigator.mediaSession.metadata = new MediaMetadata({

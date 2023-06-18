@@ -39,6 +39,8 @@
     ></script>
     <style>
       body {
+        --primary: #ff8475; /* Nuevo color primario */
+        --secondary: #f1f3f4; /* Nuevo color secundario */
         font-family: Arial, sans-serif;
         text-align: center;
         padding: 20px;
@@ -165,13 +167,13 @@
             selector.appendChild(option);
             episodesByAudio[episode.download_url] = episode; //index episodes by url
             // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
-            isFileCached(episode.download_url, cacheName).then((cached) => {
-              if (!cached) {
-                fetch(episode.download_url).then((data) =>
-                  console.log("Episodio descargado..." + episode.download_url)
-                );
-              }
-            });
+            // isFileCached(episode.download_url, cacheName).then((cached) => {
+            //   if (!cached) {
+            //     fetch(episode.download_url).then((data) =>
+            //       console.log("Episodio descargado..." + episode.download_url)
+            //     );
+            //   }
+            // });
           });
         })
         .catch((error) => {

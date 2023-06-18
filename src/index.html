@@ -104,6 +104,7 @@
     <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
     <script>
       let playbackRate = 1;
+      let episodesByAudio = {};
 
       const changePlayBackRate = () => {
         if (playbackRate === 1) {
@@ -165,6 +166,7 @@
             option.value = episode.download_url;
             option.text = episode.title;
             selector.appendChild(option);
+            episodesByAudio[episode.download_url] = episode; //index episodes by url
             // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
             isFileCached(episode.download_url, cacheName).then((cached) => {
               if (!cached) {
@@ -210,11 +212,33 @@
           });
       }
 
+      const setMetadata = (episode) => {
+        if ("mediaSession" in navigator) {
+          const player = document.querySelector("audio");
+
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: episode.title,
+            artist: "Daniel Primo",
+            album: "Web Reactiva",
+            artwork: [
+              {
+                src: episode.image_url,
+                sizes: "160x160",
+                type: "image/jpeg",
+              },
+            ],
+          });
+        }
+      };
+
       // Seleccionar el audio
       episodeSelector.addEventListener("change", function () {
         const selectedValue = episodeSelector.value;
         audioPlayer.src = selectedValue;
+        //guardamos el audio seleccionado
         idxDBSet("selectedAudio", selectedValue);
+        //añadimos los metadatos, para que se muestren con pantalla bloqueada
+        setMetadata(episodesByAudio[selectedValue]);
       });
 
       // Recuperar audio seleccionado
@@ -223,6 +247,8 @@
           episodeSelector.value = value;
           audioPlayer.src = value;
         }
+        //añadimos los metadatos, para que se muestren con pantalla bloqueada
+        setMetadata(episodesByAudio[value]);
       });
 
       // Recuperar el último instante de reproducción

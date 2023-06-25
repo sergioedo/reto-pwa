@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from 'react'
 
-const EpisodeListElement = ({ episode, onEpisodeSelected, onEpisodePlayed }) => {
+const EpisodeListElement = ({ episode, onEpisodeSelected, onEpisodePlayed, selected = false }) => {
      
       // // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
       // isFileCached(episode.download_url, cacheName).then((cached) => {
@@ -34,8 +34,8 @@ const EpisodeListElement = ({ episode, onEpisodeSelected, onEpisodePlayed }) => 
 
       return (
       <div className='row'>
-        <button id={"play_button_" + episode.episode_id} className='circle small' onClick={() => onEpisodePlayed(episode)}>
-          <i id ={"play_icon_" + episode.episode_id}>play_circle</i>
+        <button id={"play_button_" + episode.episode_id} className={`circle small ${selected ? 'secondary black-text' : ''}`} onClick={() => onEpisodePlayed(episode)}>
+          <i id ={"play_icon_" + episode.episode_id}>{selected ? 'mic' : 'play_circle'}</i>
         </button>
         <a className='col max wave' id = {"episode_" + episode.episode_id} onClick={() => onEpisodeSelected(episode)}>
           {episode.title}
@@ -52,17 +52,6 @@ function App() {
   const [episodes, setEpisodes] = useState([]);
   const [selectedEpisode, setSelectedEpisode] = useState();
   const refAudioPlayer = useRef(null);
-
-  const handleSelectEpisode = (episode) => {
-    setSelectedEpisode(episode)
-    if(refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
-  }
-
-  const handlePlayEpisode = (episode) => {
-    setSelectedEpisode(episode)
-    if(refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
-    if(refAudioPlayer) refAudioPlayer.current.play();
-  }
 
   // Inicialización de la app
   useEffect(() => {
@@ -177,32 +166,6 @@ function App() {
     //     });
     // }
 
-    // const setMetadata = (episode) => {
-    //   if (episode && "mediaSession" in navigator) {
-    //     const player = document.querySelector("audio");
-
-    //     navigator.mediaSession.metadata = new MediaMetadata({
-    //       title: episode.title,
-    //       artist: "Daniel Primo",
-    //       album: "Web Reactiva",
-    //       artwork: [
-    //         {
-    //           src: episode.image_url,
-    //           sizes: "160x160",
-    //           type: "image/jpeg",
-    //         },
-    //       ],
-    //     });
-
-    //     const audioTitle = document.getElementById("audio-title");
-    //     audioTitle.textContent = episode.title.split(":")[0];
-    //     const audioDescription = document.getElementById("audio-description");
-    //     audioDescription.textContent = episode.title.split(":")[1];
-    //     const audioImage = document.getElementById("audio-image");
-    //     audioImage.src = episode.image_url;
-    //   }
-    // };
-
     // const selectAudio = (value) => {
     //   selectedAudio = value;
     //   audioPlayer.src = value;
@@ -249,6 +212,36 @@ function App() {
     // });
   }, []);
 
+  // Efectos por cambio de episodio
+  useEffect(() => {
+    // metadatos para informar de lo que se está reproduciendo
+    if (selectedEpisode && "mediaSession" in navigator) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: selectedEpisode.title,
+        artist: "Daniel Primo",
+        album: "Web Reactiva",
+        artwork: [
+          {
+            src: selectedEpisode.image_url,
+            sizes: "160x160",
+            type: "image/jpeg",
+          },
+        ],
+      });
+    }
+  }, [selectedEpisode])
+
+  const handleSelectEpisode = (episode) => {
+    setSelectedEpisode(episode)
+    if(refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
+  }
+
+  const handlePlayEpisode = (episode) => {
+    setSelectedEpisode(episode)
+    if(refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
+    if(refAudioPlayer) refAudioPlayer.current.play();
+  }
+
   return (
     <main className="container">
       <article className="no-padding primary-container responsive round">
@@ -294,6 +287,7 @@ function App() {
             episode={episode} 
             onEpisodePlayed={handlePlayEpisode}
             onEpisodeSelected={handleSelectEpisode}
+            selected={selectedEpisode && selectedEpisode.episode_id === episode.episode_id}
           />)}
         </article>
       }

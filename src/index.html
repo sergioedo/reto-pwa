@@ -76,15 +76,6 @@
         <img src="img/abuela-cascos.svg" class="avatar" />
         <h3>Play Well Abuela</h3>
       </div>
-      <div class="grid">
-        <h6 class="s12 center-align">Últimos episodios de Web Reactiva:</h6>
-        <div class="field suffix border s12 responsive">
-          <select id="episodeSelector">
-            <option>----Selecciona el audio a reproducir----</option>
-          </select>
-          <i>arrow_drop_down</i>
-        </div>
-      </div>
       <div class="row responsive center-align">
         <div>
           <audio id="audio-player" src="" controls preload="auto"></audio>
@@ -99,11 +90,17 @@
           </button>
         </div>
       </div>
+      <article class="primary responsive">
+        Últimos episodios de Web Reactiva
+      </article>
+      <article class="tertiary responsive" id="episodes-list"></article>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
     <script>
       let playbackRate = 1;
       let episodesByAudio = {};
+      let selectedAudio;
+      const cacheName = "pwa-abuela-cache";
 
       const changePlayBackRate = () => {
         if (playbackRate === 1) {
@@ -152,28 +149,115 @@
           });
       }
 
+      const episodeListElement = (episode) => {
+        const row = document.createElement("div");
+        row.classList.add("row");
+
+        const iPlay = document.createElement("i");
+        iPlay.textContent = "play_circle";
+        iPlay.id = "play_icon_" + episode.episode_id;
+
+        const bPlay = document.createElement("button");
+        bPlay.classList.add("circle", "small");
+        bPlay.id = "play_button_" + episode.episode_id;
+        bPlay.appendChild(iPlay);
+
+        const linkText = document.createElement("a");
+        linkText.classList.add("col", "max", "wave");
+        linkText.id = "episode_" + episode.episode_id;
+        linkText.textContent = episode.title;
+        // var divText = document.createElement("div");
+        // divText.classList.add("max", "left-align");
+        // divText.textContent = episode.title;
+
+        const iStatus = document.createElement("i");
+        iStatus.textContent = "download_for_offline";
+        const bStatus = document.createElement("button");
+        bStatus.classList.add("circle", "small");
+        bStatus.appendChild(iStatus);
+
+        // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
+        isFileCached(episode.download_url, cacheName).then((cached) => {
+          console.log({ url: episode.download_url, cached });
+          if (cached) {
+            iStatus.textContent = "smartphone";
+            iStatus.classList.add("tertiary-text");
+            bStatus.classList.add("secondary");
+          } else {
+            iStatus.textContent = "download_for_offline";
+          }
+        });
+
+        // Agregar los elementos hijos al elemento <a>
+        row.appendChild(bPlay);
+        row.appendChild(linkText);
+        row.appendChild(bStatus);
+        // link.appendChild(span);
+
+        bPlay.addEventListener("click", function (event) {
+          event.preventDefault();
+          playAudio(episode.download_url);
+          // ponemos todos los botones de play
+          var buttons = document
+            .getElementById("episodes-list")
+            .querySelectorAll("button");
+          buttons.forEach((button) => {
+            if (button.id.indexOf("play_button") >= 0) {
+              button.classList.remove("secondary");
+            }
+          });
+          var icons = document
+            .getElementById("episodes-list")
+            .querySelectorAll("i");
+          icons.forEach((icon) => {
+            if (icon.textContent === "mic") {
+              icon.textContent = "play_circle";
+              icon.classList.remove("black-text");
+            }
+          });
+          // activamos el micro en el episodio que se va a reproducir
+          iPlay.textContent = "mic";
+          iPlay.classList.add("black-text");
+          bPlay.classList.add("secondary");
+        });
+
+        linkText.addEventListener("click", function (event) {
+          event.preventDefault();
+          selectAudio(episode.download_url);
+        });
+
+        // Agrega el listener de eventos para el doble clic
+        bStatus.addEventListener("click", function (event) {
+          event.preventDefault();
+          // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
+          isFileCached(episode.download_url, cacheName).then((cached) => {
+            if (!cached) {
+              iStatus.textContent = "cloud_sync";
+              fetch(episode.download_url).then((data) => {
+                console.log("Episodio descargado..." + episode.download_url);
+                iStatus.textContent = "smartphone";
+                iStatus.classList.add("tertiary-text");
+                bStatus.classList.add("secondary");
+              });
+            }
+          });
+        });
+
+        return row;
+      };
+
       // Realizar la llamada a la API, para cargar los últimos 10 episodios
       fetch("https://api.spreaker.com/v2/shows/2676652/episodes?limit=10")
         .then((response) => response.json())
         .then((data) => {
           const episodes = data.response.items;
-          const selector = document.getElementById("episodeSelector");
-          const cacheName = "pwa-abuela-cache";
-          // Rellenar el selector con los títulos de los episodios
+          const episodesList = document.getElementById("episodes-list");
+
+          // Rellenar la lista con los títulos de los episodios
           episodes.forEach((episode) => {
-            const option = document.createElement("option");
-            option.value = episode.download_url;
-            option.text = episode.title;
-            selector.appendChild(option);
             episodesByAudio[episode.download_url] = episode; //index episodes by url
-            // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
-            // isFileCached(episode.download_url, cacheName).then((cached) => {
-            //   if (!cached) {
-            //     fetch(episode.download_url).then((data) =>
-            //       console.log("Episodio descargado..." + episode.download_url)
-            //     );
-            //   }
-            // });
+            // Agregar el elemento episode a la lista
+            episodesList.appendChild(episodeListElement(episode));
           });
         })
         .catch((error) => {
@@ -181,7 +265,6 @@
         });
 
       const audioPlayer = document.getElementById("audio-player");
-      const episodeSelector = document.getElementById("episodeSelector");
 
       // Función para guardar una clave-valor en el almacenamiento
       function idxDBSet(key, value) {
@@ -230,31 +313,32 @@
         }
       };
 
-      // Seleccionar el audio
-      episodeSelector.addEventListener("change", function () {
-        const selectedValue = episodeSelector.value;
-        audioPlayer.src = selectedValue;
+      const selectAudio = (value) => {
+        selectedAudio = value;
+        audioPlayer.src = value;
         //guardamos el audio seleccionado
-        idxDBSet("selectedAudio", selectedValue);
+        idxDBSet("selectedAudio", value);
         //añadimos los metadatos, para que se muestren con pantalla bloqueada
-        setMetadata(episodesByAudio[selectedValue]);
-      });
+        setMetadata(episodesByAudio[value]);
+      };
+
+      const playAudio = (value) => {
+        selectAudio(value);
+        audioPlayer.play();
+      };
 
       // Recuperar audio seleccionado
       idxDBGet("selectedAudio", function (value, error) {
         if (value) {
-          episodeSelector.value = value;
-          audioPlayer.src = value;
+          selectAudio(value);
         }
-        //añadimos los metadatos, para que se muestren con pantalla bloqueada
-        setMetadata(episodesByAudio[value]);
       });
 
       // Recuperar el último instante de reproducción
       audioPlayer.addEventListener("canplaythrough", function () {
         // El audio está listo para reproducirse
         // Recuperar tiempo de reproducción
-        idxDBGet("time_" + episodeSelector.value, function (time, error) {
+        idxDBGet("time_" + selectedAudio, function (time, error) {
           if (time && audioPlayer.paused) {
             audioPlayer.currentTime = time;
           }
@@ -266,7 +350,7 @@
         if (!audioPlayer.paused) {
           // Obtener el tiempo actual del audio
           currentTime = audioPlayer.currentTime;
-          idxDBSet("time_" + episodeSelector.value, currentTime);
+          idxDBSet("time_" + selectedAudio, currentTime);
         }
       });
     </script>

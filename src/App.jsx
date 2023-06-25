@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const EpisodeListElement = ({ episode, onEpisodeSelected, onEpisodePlayed }) => {
      
@@ -51,14 +51,17 @@ function App() {
   // Estado
   const [episodes, setEpisodes] = useState([]);
   const [selectedEpisode, setSelectedEpisode] = useState();
+  const refAudioPlayer = useRef(null);
 
   const handleSelectEpisode = (episode) => {
     setSelectedEpisode(episode)
+    if(refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
   }
 
   const handlePlayEpisode = (episode) => {
     setSelectedEpisode(episode)
-    //TODO: play audio
+    if(refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
+    if(refAudioPlayer) refAudioPlayer.current.play();
   }
 
   // Inicialización de la app
@@ -262,8 +265,8 @@ function App() {
           </p>
           <nav className="center-align">
             <audio
+              ref={refAudioPlayer}
               id="audio-player"
-              src={selectedEpisode ? selectedEpisode.download_url : ''}
               controls
               preload="auto"
               style={{ width: '80%' }}

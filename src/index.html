@@ -44,7 +44,6 @@
         font-family: Arial, sans-serif;
         text-align: center;
         padding: 20px;
-        height: 100vh;
       }
 
       .container {
@@ -72,26 +71,40 @@
   </head>
   <body>
     <main class="container">
-      <div class="title-container">
-        <img src="img/abuela-cascos.svg" class="avatar" />
-        <h3>Play Well Abuela</h3>
-      </div>
-      <div class="row responsive center-align">
-        <div>
-          <audio id="audio-player" src="" controls preload="auto"></audio>
+      <article class="no-padding primary-container responsive">
+        <img
+          id="audio-image"
+          class="responsive small top-round"
+          src="img/abuela-cascos.svg"
+        />
+        <div class="padding white">
+          <h5 id="audio-title">Play Well Abuela</h5>
+          <p id="audio-description">
+            El reproductor de audio que hasta tu abuela sabrá utilizar!
+            Selecciona un audio y dale al play!
+          </p>
+          <nav class="center-align">
+            <audio
+              id="audio-player"
+              src=""
+              controls
+              preload="auto"
+              style="width: 80%"
+            ></audio>
+            <button
+              onclick="changePlayBackRate()"
+              id="playback-rate-btn"
+              class="circle large medium-elevate"
+            >
+              1x
+            </button>
+          </nav>
         </div>
-        <div class="">
-          <button
-            onclick="changePlayBackRate()"
-            id="playback-rate-btn"
-            class="circle large medium-elevate"
-          >
-            1x
-          </button>
-        </div>
-      </div>
+      </article>
       <article class="primary responsive">
-        Últimos episodios de Web Reactiva
+        <h6 class="small bold center-align no-margin">
+          Últimos episodios de Web Reactiva
+        </h6>
       </article>
       <article class="tertiary responsive" id="episodes-list"></article>
     </main>

@@ -149,6 +149,36 @@
           });
       }
 
+      const setPlayListStatus = ({ episode_id }) => {
+        // ponemos todos los botones de play
+        var buttons = document
+          .getElementById("episodes-list")
+          .querySelectorAll("button");
+        buttons.forEach((button) => {
+          if (button.id.indexOf("play_button") >= 0) {
+            button.classList.remove("secondary");
+          }
+          // activamos el micro en el episodio seleccionado (bg-color)
+          if (button.id === `play_button_${episode_id}`) {
+            button.classList.add("secondary");
+          }
+        });
+        var icons = document
+          .getElementById("episodes-list")
+          .querySelectorAll("i");
+        icons.forEach((icon) => {
+          if (icon.textContent === "mic") {
+            icon.textContent = "play_circle";
+            icon.classList.remove("black-text");
+          }
+          // activamos el micro en el episodio seleccionado (icono)
+          if (icon.id === `play_icon_${episode_id}`) {
+            icon.textContent = "mic";
+            icon.classList.add("black-text");
+          }
+        });
+      };
+
       const episodeListElement = (episode) => {
         const row = document.createElement("div");
         row.classList.add("row");
@@ -197,28 +227,6 @@
         bPlay.addEventListener("click", function (event) {
           event.preventDefault();
           playAudio(episode.download_url);
-          // ponemos todos los botones de play
-          var buttons = document
-            .getElementById("episodes-list")
-            .querySelectorAll("button");
-          buttons.forEach((button) => {
-            if (button.id.indexOf("play_button") >= 0) {
-              button.classList.remove("secondary");
-            }
-          });
-          var icons = document
-            .getElementById("episodes-list")
-            .querySelectorAll("i");
-          icons.forEach((icon) => {
-            if (icon.textContent === "mic") {
-              icon.textContent = "play_circle";
-              icon.classList.remove("black-text");
-            }
-          });
-          // activamos el micro en el episodio que se va a reproducir
-          iPlay.textContent = "mic";
-          iPlay.classList.add("black-text");
-          bPlay.classList.add("secondary");
         });
 
         linkText.addEventListener("click", function (event) {
@@ -259,6 +267,9 @@
             // Agregar el elemento episode a la lista
             episodesList.appendChild(episodeListElement(episode));
           });
+
+          //forzamos a settear el estado en la lista
+          if (selectedAudio) selectAudio(selectedAudio);
         })
         .catch((error) => {
           console.error("Error al obtener los episodios:", error);
@@ -319,7 +330,11 @@
         //guardamos el audio seleccionado
         idxDBSet("selectedAudio", value);
         //añadimos los metadatos, para que se muestren con pantalla bloqueada
-        setMetadata(episodesByAudio[value]);
+        const episode = episodesByAudio[value];
+        if (episode) {
+          setMetadata(episode);
+          setPlayListStatus(episode);
+        }
       };
 
       const playAudio = (value) => {

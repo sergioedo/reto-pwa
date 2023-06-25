@@ -71,15 +71,16 @@
   </head>
   <body>
     <main class="container">
-      <article class="no-padding primary-container responsive">
+      <article class="no-padding primary-container responsive round">
         <img
           id="audio-image"
-          class="responsive small top-round"
+          class="primary responsive small top-round"
           src="img/abuela-cascos.svg"
+          style="object-fit: contain"
         />
-        <div class="padding white">
+        <div class="padding bottom-round white">
           <h5 id="audio-title">Play Well Abuela</h5>
-          <p id="audio-description">
+          <p class="left-align" id="audio-description">
             El reproductor de audio que hasta tu abuela sabrá utilizar!
             Selecciona un audio y dale al play!
           </p>
@@ -334,6 +335,13 @@
               },
             ],
           });
+
+          const audioTitle = document.getElementById("audio-title");
+          audioTitle.textContent = episode.title.split(":")[0];
+          const audioDescription = document.getElementById("audio-description");
+          audioDescription.textContent = episode.title.split(":")[1];
+          const audioImage = document.getElementById("audio-image");
+          audioImage.src = episode.image_url;
         }
       };
 

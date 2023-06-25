@@ -28,36 +28,52 @@ function idxDBGet(key, callback) {
     });
 }
 
-const EpisodeListElement = ({ episode, onEpisodeSelected, onEpisodePlayed, selected = false }) => {
-     
-      // // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
-      // isFileCached(episode.download_url, cacheName).then((cached) => {
-      //   console.log({ url: episode.download_url, cached });
-      //   if (cached) {
-      //     iStatus.textContent = "smartphone";
-      //     iStatus.classList.add("tertiary-text");
-      //     bStatus.classList.add("secondary");
-      //   } else {
-      //     iStatus.textContent = "download_for_offline";
-      //   }
-      // });     
+const cacheName = "pwa-abuela-cache";
+  
+// Check if a file is cached by a service worker
+function isFileCached(fileUrl, cacheName) {
+  return caches
+    .open(cacheName)
+    .then(function (cache) {
+      return cache.match(fileUrl);
+    })
+    .then(function (response) {
+      if (response) {
+        console.log(`File ${fileUrl} is cached!`);
+        return true;
+      } else {
+        console.log(`File ${fileUrl} is NOT cached!`);
+        return false;
+      }
+    });
+}
 
-      // // Agrega el listener de eventos para el doble clic
-      // bStatus.addEventListener("click", function (event) {
-      //   event.preventDefault();
-      //   // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
-      //   isFileCached(episode.download_url, cacheName).then((cached) => {
-      //     if (!cached) {
-      //       iStatus.textContent = "cloud_sync";
-      //       fetch(episode.download_url).then((data) => {
-      //         console.log("Episodio descargado..." + episode.download_url);
-      //         iStatus.textContent = "smartphone";
-      //         iStatus.classList.add("tertiary-text");
-      //         bStatus.classList.add("secondary");
-      //       });
-      //     }
-      //   });
-      // });
+const EpisodeListElement = ({ episode, onEpisodeSelected, onEpisodePlayed, selected = false }) => {
+      const [cachedState, setCachedState] = useState('NO_CACHED');
+
+      useEffect(() => {
+        // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
+        isFileCached(episode.download_url, cacheName).then((cached) => {
+          console.log({ url: episode.download_url, cached });
+          if(cached) setCachedState('CACHED');        
+        });
+      }, [episode]);
+      
+      // Agrega el listener de eventos para el doble clic
+      const handleDownloadClick = () => {
+        // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
+        if(cachedState !== 'CACHED') {
+          isFileCached(episode.download_url, cacheName).then((cached) => {
+            if (!cached) {
+              setCachedState('DOWNLOADING');
+              fetch(episode.download_url).then(() => {
+                console.log("Episodio descargado..." + episode.download_url);
+                setCachedState('CACHED');
+              });
+            }
+          });
+        }
+      };
 
       return (
       <div className='row'>
@@ -67,8 +83,8 @@ const EpisodeListElement = ({ episode, onEpisodeSelected, onEpisodePlayed, selec
         <a className='col max wave' id = {"episode_" + episode.episode_id} onClick={() => onEpisodeSelected(episode)}>
           {episode.title}
         </a>
-        <button className='circle small'>
-          <i>download_for_offline</i>
+        <button className={`circle small ${cachedState === 'CACHED' ? 'secondary' :''}`} onClick={handleDownloadClick}>
+          <i className={cachedState === 'CACHED' ? 'tertiary-text' : ''}>{cachedState === 'CACHED' ? 'smartphone' : cachedState === 'DOWNLOADING' ? 'cloud_sync' : 'download_for_offline'}</i>
         </button>
       </div>
       )
@@ -83,56 +99,6 @@ function App() {
 
   // Inicialización de la app
   useEffect(() => {
-    // const cacheName = "pwa-abuela-cache";
-
-    // // Check if a file is cached by a service worker
-    // function isFileCached(fileUrl, cacheName) {
-    //   return caches
-    //     .open(cacheName)
-    //     .then(function (cache) {
-    //       return cache.match(fileUrl);
-    //     })
-    //     .then(function (response) {
-    //       if (response) {
-    //         console.log(`File ${fileUrl} is cached!`);
-    //         return true;
-    //       } else {
-    //         console.log(`File ${fileUrl} is NOT cached!`);
-    //         return false;
-    //       }
-    //     });
-    // }
-
-    // const setPlayListStatus = ({ episode_id }) => {
-    //   // ponemos todos los botones de play
-    //   var buttons = document
-    //     .getElementById("episodes-list")
-    //     .querySelectorAll("button");
-    //   buttons.forEach((button) => {
-    //     if (button.id.indexOf("play_button") >= 0) {
-    //       button.classList.remove("secondary");
-    //     }
-    //     // activamos el micro en el episodio seleccionado (bg-color)
-    //     if (button.id === `play_button_${episode_id}`) {
-    //       button.classList.add("secondary");
-    //     }
-    //   });
-    //   var icons = document
-    //     .getElementById("episodes-list")
-    //     .querySelectorAll("i");
-    //   icons.forEach((icon) => {
-    //     if (icon.textContent === "mic") {
-    //       icon.textContent = "play_circle";
-    //       icon.classList.remove("black-text");
-    //     }
-    //     // activamos el micro en el episodio seleccionado (icono)
-    //     if (icon.id === `play_icon_${episode_id}`) {
-    //       icon.textContent = "mic";
-    //       icon.classList.add("black-text");
-    //     }
-    //   });
-    // };
-
     // Realizar la llamada a la API, para cargar los últimos 10 episodios
     fetch("https://api.spreaker.com/v2/shows/2676652/episodes?limit=10")
       .then((response) => response.json())
@@ -140,25 +106,6 @@ function App() {
         const episodes = data.response.items;
         setEpisodes(episodes);
       })
-    
-    //     //forzamos a settear el estado en la lista
-    //     if (selectedAudio) selectAudio(selectedAudio);
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error al obtener los episodios:", error);
-    //   });
-
-    // const audioPlayer = document.getElementById("audio-player");
-
-    // const selectAudio = (value) => {
-    //   selectedAudio = value;
-    //   audioPlayer.src = value;
-    //   //añadimos los metadatos, para que se muestren con pantalla bloqueada
-    //   const episode = episodesByAudio[value];
-    //   if (episode) {
-    //     setPlayListStatus(episode);
-    //   }
-    // };
   }, []);
 
   // cuando ya tenemos todos los episodios cargados

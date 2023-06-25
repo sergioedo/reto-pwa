@@ -1,5 +1,32 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from 'react'
+import { get, set } from 'idb-keyval'
+
+// Función para guardar una clave-valor en el almacenamiento
+function idxDBSet(key, value) {
+    set(key, value)
+    .then(() => {
+      console.log("Valor guardado en el almacenamiento");
+    })
+    .catch((error) => {
+      console.error("Error al guardar el valor:", error);
+    });
+}
+
+// Función para recuperar el valor de una clave del almacenamiento
+function idxDBGet(key, callback) {
+    get(key)
+    .then((value) => {
+      callback(value);
+    })
+    .catch((error) => {
+      console.error(
+        "Error al leer el valor de audio seleccionado:",
+        error
+      );
+      callback(null, error);
+    });
+}
 
 const EpisodeListElement = ({ episode, onEpisodeSelected, onEpisodePlayed, selected = false }) => {
      
@@ -111,7 +138,7 @@ function App() {
       .then((response) => response.json())
       .then((data) => {
         const episodes = data.response.items;
-        setEpisodes(episodes);        
+        setEpisodes(episodes);
       })
     
     //     //forzamos a settear el estado en la lista
@@ -123,58 +150,15 @@ function App() {
 
     // const audioPlayer = document.getElementById("audio-player");
 
-    // // Función para guardar una clave-valor en el almacenamiento
-    // function idxDBSet(key, value) {
-    //   idbKeyval
-    //     .set(key, value)
-    //     .then(() => {
-    //       console.log("Valor guardado en el almacenamiento");
-    //     })
-    //     .catch((error) => {
-    //       console.error("Error al guardar el valor:", error);
-    //     });
-    // }
-
-    // // Función para recuperar el valor de una clave del almacenamiento
-    // function idxDBGet(key, callback) {
-    //   idbKeyval
-    //     .get(key)
-    //     .then((value) => {
-    //       callback(value);
-    //     })
-    //     .catch((error) => {
-    //       console.error(
-    //         "Error al leer el valor de audio seleccionado:",
-    //         error
-    //       );
-    //       callback(null, error);
-    //     });
-    // }
-
     // const selectAudio = (value) => {
     //   selectedAudio = value;
     //   audioPlayer.src = value;
-    //   //guardamos el audio seleccionado
-    //   idxDBSet("selectedAudio", value);
     //   //añadimos los metadatos, para que se muestren con pantalla bloqueada
     //   const episode = episodesByAudio[value];
     //   if (episode) {
-    //     setMetadata(episode);
     //     setPlayListStatus(episode);
     //   }
     // };
-
-    // const playAudio = (value) => {
-    //   selectAudio(value);
-    //   audioPlayer.play();
-    // };
-
-    // // Recuperar audio seleccionado
-    // idxDBGet("selectedAudio", function (value, error) {
-    //   if (value) {
-    //     selectAudio(value);
-    //   }
-    // });
 
     // // Recuperar el último instante de reproducción
     // audioPlayer.addEventListener("canplaythrough", function () {
@@ -197,6 +181,17 @@ function App() {
     // });
   }, []);
 
+  // cuando ya tenemos todos los episodios cargados
+  useEffect(() => {
+    // Recuperar audio seleccionado
+    idxDBGet("selectedAudio", function (value/*, error*/) {
+      if (value) {
+        const episode = episodes.find(e => e.episode_id === value)
+        if(episode) setSelectedEpisode(episode)
+      }
+    });
+  }, [episodes])
+
   // Efectos por cambio de episodio
   useEffect(() => {
     // metadatos para informar de lo que se está reproduciendo
@@ -214,6 +209,8 @@ function App() {
         ],
       });
     }
+    // Guardamos en IndexedDB el identificador del episodio
+    if(selectedEpisode) idxDBSet("selectedAudio", selectedEpisode.episode_id);
   }, [selectedEpisode]);
 
   useEffect(() => {

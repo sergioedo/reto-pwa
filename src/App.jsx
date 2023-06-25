@@ -159,26 +159,6 @@ function App() {
     //     setPlayListStatus(episode);
     //   }
     // };
-
-    // // Recuperar el último instante de reproducción
-    // audioPlayer.addEventListener("canplaythrough", function () {
-    //   // El audio está listo para reproducirse
-    //   // Recuperar tiempo de reproducción
-    //   idxDBGet("time_" + selectedAudio, function (time, error) {
-    //     if (time && audioPlayer.paused) {
-    //       audioPlayer.currentTime = time;
-    //     }
-    //   });
-    // });
-
-    // // Guardar el momento de reproducción, cada vez que se actualiza
-    // audioPlayer.addEventListener("timeupdate", function () {
-    //   if (!audioPlayer.paused) {
-    //     // Obtener el tiempo actual del audio
-    //     currentTime = audioPlayer.currentTime;
-    //     idxDBSet("time_" + selectedAudio, currentTime);
-    //   }
-    // });
   }, []);
 
   // cuando ya tenemos todos los episodios cargados
@@ -187,30 +167,63 @@ function App() {
     idxDBGet("selectedAudio", function (value/*, error*/) {
       if (value) {
         const episode = episodes.find(e => e.episode_id === value)
-        if(episode) setSelectedEpisode(episode)
+        if(episode) {
+          setSelectedEpisode(episode)
+          if(refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
+        } 
       }
     });
   }, [episodes])
 
   // Efectos por cambio de episodio
   useEffect(() => {
-    // metadatos para informar de lo que se está reproduciendo
-    if (selectedEpisode && "mediaSession" in navigator) {
-      navigator.mediaSession.metadata = new MediaMetadata({
-        title: selectedEpisode.title,
-        artist: "Daniel Primo",
-        album: "Web Reactiva",
-        artwork: [
-          {
-            src: selectedEpisode.image_url,
-            sizes: "160x160",
-            type: "image/jpeg",
-          },
-        ],
-      });
-    }
-    // Guardamos en IndexedDB el identificador del episodio
-    if(selectedEpisode) idxDBSet("selectedAudio", selectedEpisode.episode_id);
+    if(selectedEpisode) {
+      // metadatos para informar de lo que se está reproduciendo
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: selectedEpisode.title,
+          artist: "Daniel Primo",
+          album: "Web Reactiva",
+          artwork: [
+            {
+              src: selectedEpisode.image_url,
+              sizes: "160x160",
+              type: "image/jpeg",
+            },
+          ],
+        });
+      }
+
+      // Guardamos en IndexedDB el identificador del episodio
+      idxDBSet("selectedAudio", selectedEpisode.episode_id);
+
+      // Recuperar el último instante de reproducción, cuando audio está listo para reproducirse
+      const handleCanPlayTrough = () => {
+        // Recuperar tiempo de reproducción
+        idxDBGet("time_" + selectedEpisode.episode_id, function (time/*, error*/) {
+          if (time && refAudioPlayer.current.paused) {
+            refAudioPlayer.current.currentTime = time;
+          }
+        });
+      }
+      refAudioPlayer.current.addEventListener("canplaythrough", handleCanPlayTrough);
+
+      // Guardar el momento de reproducción, cada vez que se actualiza
+      const handleTimeUpdate = () => {
+        if (!refAudioPlayer.current.paused) {
+          // Obtener el tiempo actual del audio
+          const currentTime = refAudioPlayer.current.currentTime;
+          idxDBSet("time_" + selectedEpisode.episode_id, currentTime);
+        }
+      }
+      refAudioPlayer.current.addEventListener("timeupdate", handleTimeUpdate);
+
+      const refAP = refAudioPlayer.current
+      return () => {
+        refAP.removeEventListener("timeupdate", handleTimeUpdate);
+        refAP.removeEventListener("canplaythrough", handleCanPlayTrough);
+      }
+    } 
   }, [selectedEpisode]);
 
   useEffect(() => {
@@ -246,7 +259,7 @@ function App() {
         <img
           id="audio-image"
           className="primary responsive small top-round"
-          src="img/abuela-cascos.svg"
+          src={selectedEpisode ? selectedEpisode.image_url : "img/abuela-cascos.svg"}
           style={{objectFit: 'contain'}}
         />
         <div className="padding bottom-round white">

@@ -51,27 +51,12 @@ function App() {
   // Estado
   const [episodes, setEpisodes] = useState([]);
   const [selectedEpisode, setSelectedEpisode] = useState();
+  const [playbackRate, setPlaybackRate] = useState(1);
   const refAudioPlayer = useRef(null);
 
   // Inicialización de la app
   useEffect(() => {
-    // let playbackRate = 1;
     // const cacheName = "pwa-abuela-cache";
-
-    // const changePlayBackRate = () => {
-    //   if (playbackRate === 1) {
-    //     playbackRate = 2;
-    //   } else {
-    //     playbackRate = 1;
-    //   }
-    //   audioPlayer.playbackRate = playbackRate; //si se esta reproduciendo
-    //   audioPlayer.oncanplay = function () {
-    //     //si no se está reproduciendo
-    //     audioPlayer.playbackRate = playbackRate;
-    //   };
-    //   document.getElementById("playback-rate-btn").textContent =
-    //     playbackRate + "x";
-    // };
 
     // // Check if a file is cached by a service worker
     // function isFileCached(fileUrl, cacheName) {
@@ -229,7 +214,15 @@ function App() {
         ],
       });
     }
-  }, [selectedEpisode])
+  }, [selectedEpisode]);
+
+  useEffect(() => {
+    refAudioPlayer.current.playbackRate = playbackRate; //si se esta reproduciendo
+    refAudioPlayer.current.oncanplay = function () {
+      //si no se está reproduciendo
+      refAudioPlayer.current.playbackRate = playbackRate;
+    };
+  }, [playbackRate]);
 
   const handleSelectEpisode = (episode) => {
     setSelectedEpisode(episode)
@@ -241,6 +234,14 @@ function App() {
     if(refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
     if(refAudioPlayer) refAudioPlayer.current.play();
   }
+
+  const handleChangePlayBackRate = () => {
+    if (playbackRate === 1) {
+      setPlaybackRate(2);
+    } else {
+      setPlaybackRate(1);
+    }
+  };
 
   return (
     <main className="container">
@@ -265,11 +266,11 @@ function App() {
               style={{ width: '80%' }}
             ></audio>
             <button
-              // onClick="changePlayBackRate()"
+              onClick={handleChangePlayBackRate}
               id="playback-rate-btn"
               className="circle large medium-elevate"
             >
-              1x
+              {playbackRate}x
             </button>
           </nav>
         </div>

@@ -4,7 +4,7 @@ import { get, set } from 'idb-keyval'
 
 // Función para guardar una clave-valor en el almacenamiento
 function idxDBSet(key, value) {
-    set(key, value)
+  set(key, value)
     .then(() => {
       console.log("Valor guardado en el almacenamiento");
     })
@@ -15,7 +15,7 @@ function idxDBSet(key, value) {
 
 // Función para recuperar el valor de una clave del almacenamiento
 function idxDBGet(key, callback) {
-    get(key)
+  get(key)
     .then((value) => {
       callback(value);
     })
@@ -29,7 +29,7 @@ function idxDBGet(key, callback) {
 }
 
 const cacheName = "pwa-abuela-cache";
-  
+
 // Check if a file is cached by a service worker
 function isFileCached(fileUrl, cacheName) {
   return caches
@@ -49,46 +49,46 @@ function isFileCached(fileUrl, cacheName) {
 }
 
 const EpisodeListElement = ({ episode, onEpisodeSelected, onEpisodePlayed, selected = false }) => {
-      const [cachedState, setCachedState] = useState('NO_CACHED');
+  const [cachedState, setCachedState] = useState('NO_CACHED');
 
-      useEffect(() => {
-        // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
-        isFileCached(episode.download_url, cacheName).then((cached) => {
-          console.log({ url: episode.download_url, cached });
-          if(cached) setCachedState('CACHED');        
-        });
-      }, [episode]);
-      
-      // Agrega el listener de eventos para el doble clic
-      const handleDownloadClick = () => {
-        // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
-        if(cachedState !== 'CACHED') {
-          isFileCached(episode.download_url, cacheName).then((cached) => {
-            if (!cached) {
-              setCachedState('DOWNLOADING');
-              fetch(episode.download_url).then(() => {
-                console.log("Episodio descargado..." + episode.download_url);
-                setCachedState('CACHED');
-              });
-            }
+  useEffect(() => {
+    // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
+    isFileCached(episode.download_url, cacheName).then((cached) => {
+      console.log({ url: episode.download_url, cached });
+      if (cached) setCachedState('CACHED');
+    });
+  }, [episode]);
+
+  // Agrega el listener de eventos para el doble clic
+  const handleDownloadClick = () => {
+    // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
+    if (cachedState !== 'CACHED') {
+      isFileCached(episode.download_url, cacheName).then((cached) => {
+        if (!cached) {
+          setCachedState('DOWNLOADING');
+          fetch(episode.download_url).then(() => {
+            console.log("Episodio descargado..." + episode.download_url);
+            setCachedState('CACHED');
           });
         }
-      };
+      });
+    }
+  };
 
-      return (
-      <div className='row'>
-        <button id={"play_button_" + episode.episode_id} className={`circle small ${selected ? 'secondary black-text' : ''}`} onClick={() => onEpisodePlayed(episode)}>
-          <i id ={"play_icon_" + episode.episode_id}>{selected ? 'mic' : 'play_circle'}</i>
-        </button>
-        <a className='col max wave' id = {"episode_" + episode.episode_id} onClick={() => onEpisodeSelected(episode)}>
-          {episode.title}
-        </a>
-        <button className={`circle small ${cachedState === 'CACHED' ? 'secondary' :''}`} onClick={handleDownloadClick}>
-          <i className={cachedState === 'CACHED' ? 'tertiary-text' : ''}>{cachedState === 'CACHED' ? 'smartphone' : cachedState === 'DOWNLOADING' ? 'cloud_sync' : 'download_for_offline'}</i>
-        </button>
-      </div>
-      )
-    };
+  return (
+    <div className='row'>
+      <button id={"play_button_" + episode.episode_id} className={`circle small ${selected ? 'secondary black-text' : ''}`} onClick={() => onEpisodePlayed(episode)}>
+        <i id={"play_icon_" + episode.episode_id}>{selected ? 'mic' : 'play_circle'}</i>
+      </button>
+      <a className='col max wave' id={"episode_" + episode.episode_id} onClick={() => onEpisodeSelected(episode)}>
+        {episode.title}
+      </a>
+      <button className={`circle small ${cachedState === 'CACHED' ? 'secondary' : ''}`} onClick={handleDownloadClick}>
+        <i className={cachedState === 'CACHED' ? 'tertiary-text' : ''}>{cachedState === 'CACHED' ? 'smartphone' : cachedState === 'DOWNLOADING' ? 'cloud_sync' : 'download_for_offline'}</i>
+      </button>
+    </div>
+  )
+};
 
 function App() {
   // Estado
@@ -114,17 +114,17 @@ function App() {
     idxDBGet("selectedAudio", function (value/*, error*/) {
       if (value) {
         const episode = episodes.find(e => e.episode_id === value)
-        if(episode) {
+        if (episode) {
           setSelectedEpisode(episode)
-          if(refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
-        } 
+          if (refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
+        }
       }
     });
   }, [episodes])
 
   // Efectos por cambio de episodio
   useEffect(() => {
-    if(selectedEpisode) {
+    if (selectedEpisode) {
       // metadatos para informar de lo que se está reproduciendo
       if ("mediaSession" in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -170,7 +170,7 @@ function App() {
         refAP.removeEventListener("timeupdate", handleTimeUpdate);
         refAP.removeEventListener("canplaythrough", handleCanPlayTrough);
       }
-    } 
+    }
   }, [selectedEpisode]);
 
   useEffect(() => {
@@ -183,13 +183,13 @@ function App() {
 
   const handleSelectEpisode = (episode) => {
     setSelectedEpisode(episode)
-    if(refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
+    if (refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
   }
 
   const handlePlayEpisode = (episode) => {
     setSelectedEpisode(episode)
-    if(refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
-    if(refAudioPlayer) refAudioPlayer.current.play();
+    if (refAudioPlayer) refAudioPlayer.current.src = episode.download_url;
+    if (refAudioPlayer) refAudioPlayer.current.play();
   }
 
   const handleChangePlayBackRate = () => {
@@ -207,12 +207,12 @@ function App() {
           id="audio-image"
           className="primary responsive small top-round"
           src={selectedEpisode ? selectedEpisode.image_url : "img/abuela-cascos.svg"}
-          style={{objectFit: 'contain'}}
+          style={{ objectFit: 'contain' }}
         />
         <div className="padding bottom-round white">
-          <h5 id="audio-title">{selectedEpisode ? selectedEpisode.title.split(':')[0] : 'Play Well Abuela' }</h5>
+          <h5 id="audio-title">{selectedEpisode ? selectedEpisode.title.split(':')[0] : 'Play Well Abuela'}</h5>
           <p className="left-align" id="audio-description">
-          { selectedEpisode ? selectedEpisode.title.split(':')[1] : 'El reproductor de audio que hasta tu abuela sabrá utilizar! Selecciona un audio y dale al play!'}
+            {selectedEpisode ? selectedEpisode.title.split(':')[1] : 'El reproductor de audio que hasta tu abuela sabrá utilizar! Selecciona un audio y dale al play!'}
           </p>
           <nav className="center-align">
             <audio
@@ -241,8 +241,8 @@ function App() {
         episodes && episodes.length > 0 &&
         <article className="tertiary responsive" id="episodes-list">
           {episodes.map(episode => <EpisodeListElement
-            key={episode.episode_id} 
-            episode={episode} 
+            key={episode.episode_id}
+            episode={episode}
             onEpisodePlayed={handlePlayEpisode}
             onEpisodeSelected={handleSelectEpisode}
             selected={selectedEpisode && selectedEpisode.episode_id === episode.episode_id}

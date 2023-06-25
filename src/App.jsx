@@ -1,10 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from 'react'
-// import reactLogo from './assets/react.svg'
-// import viteLogo from '/vite.svg'
-// import './App.css'
 
-const EpisodeListElement = ({ episode }) => {
+const EpisodeListElement = ({ episode, onEpisodeSelected, onEpisodePlayed }) => {
      
       // // Si aun no esta cacheado el audio, lo descargamos para que esté disponible offline
       // isFileCached(episode.download_url, cacheName).then((cached) => {
@@ -16,17 +13,7 @@ const EpisodeListElement = ({ episode }) => {
       //   } else {
       //     iStatus.textContent = "download_for_offline";
       //   }
-      // });
-
-      // bPlay.addEventListener("click", function (event) {
-      //   event.preventDefault();
-      //   playAudio(episode.download_url);
-      // });
-
-      // linkText.addEventListener("click", function (event) {
-      //   event.preventDefault();
-      //   selectAudio(episode.download_url);
-      // });
+      // });     
 
       // // Agrega el listener de eventos para el doble clic
       // bStatus.addEventListener("click", function (event) {
@@ -47,10 +34,10 @@ const EpisodeListElement = ({ episode }) => {
 
       return (
       <div className='row'>
-        <button id={"play_button_" + episode.episode_id} className='circle small'>
+        <button id={"play_button_" + episode.episode_id} className='circle small' onClick={() => onEpisodePlayed(episode)}>
           <i id ={"play_icon_" + episode.episode_id}>play_circle</i>
         </button>
-        <a className='col max wave' id = {"episode_" + episode.episode_id}>
+        <a className='col max wave' id = {"episode_" + episode.episode_id} onClick={() => onEpisodeSelected(episode)}>
           {episode.title}
         </a>
         <button className='circle small'>
@@ -63,11 +50,20 @@ const EpisodeListElement = ({ episode }) => {
 function App() {
   // Estado
   const [episodes, setEpisodes] = useState([]);
+  const [selectedEpisode, setSelectedEpisode] = useState();
+
+  const handleSelectEpisode = (episode) => {
+    setSelectedEpisode(episode)
+  }
+
+  const handlePlayEpisode = (episode) => {
+    setSelectedEpisode(episode)
+    //TODO: play audio
+  }
 
   // Inicialización de la app
   useEffect(() => {
     // let playbackRate = 1;
-    // let selectedAudio;
     // const cacheName = "pwa-abuela-cache";
 
     // const changePlayBackRate = () => {
@@ -260,15 +256,14 @@ function App() {
           style={{objectFit: 'contain'}}
         />
         <div className="padding bottom-round white">
-          <h5 id="audio-title">Play Well Abuela</h5>
+          <h5 id="audio-title">{selectedEpisode ? selectedEpisode.title.split(':')[0] : 'Play Well Abuela' }</h5>
           <p className="left-align" id="audio-description">
-            El reproductor de audio que hasta tu abuela sabrá utilizar!
-            Selecciona un audio y dale al play!
+          { selectedEpisode ? selectedEpisode.title.split(':')[1] : 'El reproductor de audio que hasta tu abuela sabrá utilizar! Selecciona un audio y dale al play!'}
           </p>
           <nav className="center-align">
             <audio
               id="audio-player"
-              src=""
+              src={selectedEpisode ? selectedEpisode.download_url : ''}
               controls
               preload="auto"
               style={{ width: '80%' }}
@@ -291,7 +286,12 @@ function App() {
       {
         episodes && episodes.length > 0 &&
         <article className="tertiary responsive" id="episodes-list">
-          {episodes.map(episode => <EpisodeListElement key={episode.episode_id} episode={episode} />)}
+          {episodes.map(episode => <EpisodeListElement
+            key={episode.episode_id} 
+            episode={episode} 
+            onEpisodePlayed={handlePlayEpisode}
+            onEpisodeSelected={handleSelectEpisode}
+          />)}
         </article>
       }
     </main>

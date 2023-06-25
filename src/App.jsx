@@ -62,7 +62,7 @@ const EpisodeListElement = ({ episode }) => {
 
 function App() {
   // Estado
-  const [episodes, setEpisodes] = useState({});
+  const [episodes, setEpisodes] = useState([]);
 
   // Inicialización de la app
   useEffect(() => {
@@ -289,9 +289,9 @@ function App() {
         </h6>
       </article>
       {
-        episodes && Object.values(episodes).length > 0 &&
+        episodes && episodes.length > 0 &&
         <article className="tertiary responsive" id="episodes-list">
-          {Object.values(episodes).map(episode => <EpisodeListElement key={episode.episode_id} episode={episode} />)}
+          {episodes.map(episode => <EpisodeListElement key={episode.episode_id} episode={episode} />)}
         </article>
       }
     </main>
